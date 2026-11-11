@@ -1,56 +1,70 @@
-<<<<<<< HEAD
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
+enum MemberStatus { active, expiring, toVerify, inactive }
 
 class Member {
   const Member({
     required this.id,
-    required this.initials,
     required this.name,
-    required this.email,
-    required this.phone,
-    required this.goal,
-    required this.sessionsCount,
-    required this.avatarColor,
-  });
+    this.email = '',
+    this.phone = '',
+    String? initials,
+    Color? avatarColor,
+    this.goal = '',
+    this.sessionsCount = 0,
+    this.photoUrl,
+    this.status = MemberStatus.inactive,
+    this.subscriptionName = 'Sans abonnement',
+    this.createdAt,
+  }) : _providedInitials = initials,
+       avatarColor = avatarColor ?? const Color(0xFFA78BFA);
 
   final String id;
-  final String initials;
   final String name;
   final String email;
   final String phone;
+  final String? photoUrl;
+  final MemberStatus status;
+  final String subscriptionName;
+  final DateTime? createdAt;
   final String goal;
   final int sessionsCount;
   final Color avatarColor;
+  final String? _providedInitials;
+
+  String get initials => _providedInitials?.isNotEmpty == true
+      ? _providedInitials!
+      : initialsFor(name);
 
   factory Member.fromMap(
-    String id,
-    Map<String, dynamic> data, {
+    Map<String, dynamic> map,
+    String docId, {
     int sessionsCount = 0,
   }) {
-    final storedName = data['name'];
-    final name = storedName is String && storedName.trim().isNotEmpty
-        ? storedName.trim()
+    final nameValue = map['name'];
+    final name = nameValue is String && nameValue.trim().isNotEmpty
+        ? nameValue.trim()
         : 'Adhérent';
-    final storedGoal = data['goal'];
-    final goal = storedGoal is String && storedGoal.trim().isNotEmpty
-        ? storedGoal.trim()
-        : '';
-    final storedEmail = data['email'];
-    final storedPhone = data['phone'];
+    final emailValue = map['email'];
+    final phoneValue = map['phone'];
+    final photoValue = map['photoUrl'];
+    final goalValue = map['goal'];
+    final subscriptionValue = map['subscriptionName'];
     return Member(
-      id: id,
-      initials: initialsFor(name),
+      id: docId,
       name: name,
-      email: storedEmail is String ? storedEmail.trim() : '',
-      phone: storedPhone is String ? storedPhone.trim() : '',
-      goal: goal,
+      email: emailValue is String ? emailValue.trim() : '',
+      phone: phoneValue is String ? phoneValue.trim() : '',
+      photoUrl: photoValue is String ? photoValue : null,
+      status: _parseStatus(map['status']),
+      subscriptionName: subscriptionValue is String
+          ? subscriptionValue
+          : 'Sans abonnement',
+      createdAt: _parseDate(map['createdAt']),
+      goal: goalValue is String ? goalValue.trim() : '',
       sessionsCount: sessionsCount,
-      avatarColor: Color(
-        avatarColorFor(
-          storedName is String && storedName.trim().isNotEmpty ? name : id,
-        ),
-      ),
+      avatarColor: Color(avatarColorFor(nameValue is String ? name : docId)),
     );
   }
 
@@ -62,8 +76,62 @@ class Member {
     if (data == null) {
       throw StateError('Adherent document ${snapshot.id} has no data.');
     }
-    return Member.fromMap(snapshot.id, data, sessionsCount: sessionsCount);
+    return Member.fromMap(data, snapshot.id, sessionsCount: sessionsCount);
   }
+
+  Map<String, dynamic> toMap() => {
+    'name': name,
+    'email': email,
+    'phone': phone,
+    'photoUrl': photoUrl,
+    'status': status.name,
+    'subscriptionName': subscriptionName,
+    'createdAt': (createdAt ?? DateTime.now()).toIso8601String(),
+    'goal': goal,
+    'sessionsCount': sessionsCount,
+  };
+
+  Member copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? phone,
+    String? photoUrl,
+    MemberStatus? status,
+    String? subscriptionName,
+    DateTime? createdAt,
+    String? goal,
+    int? sessionsCount,
+    String? initials,
+    Color? avatarColor,
+  }) => Member(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    email: email ?? this.email,
+    phone: phone ?? this.phone,
+    photoUrl: photoUrl ?? this.photoUrl,
+    status: status ?? this.status,
+    subscriptionName: subscriptionName ?? this.subscriptionName,
+    createdAt: createdAt ?? this.createdAt,
+    goal: goal ?? this.goal,
+    sessionsCount: sessionsCount ?? this.sessionsCount,
+    initials: initials ?? _providedInitials,
+    avatarColor: avatarColor ?? this.avatarColor,
+  );
+
+  static MemberStatus _parseStatus(Object? value) => switch (value) {
+    'active' => MemberStatus.active,
+    'expiring' => MemberStatus.expiring,
+    'toVerify' => MemberStatus.toVerify,
+    _ => MemberStatus.inactive,
+  };
+
+  static DateTime? _parseDate(Object? value) => switch (value) {
+    Timestamp timestamp => timestamp.toDate(),
+    DateTime date => date,
+    String date => DateTime.tryParse(date),
+    _ => null,
+  };
 }
 
 String initialsFor(String name) {
@@ -82,101 +150,3 @@ int avatarColorFor(String value) {
   }
   return colors[hash % colors.length];
 }
-=======
-enum MemberStatus { active, expiring, toVerify, inactive }
-
-class Member {
-  final String id;
-  final String name;
-  final String email;
-  final String phone;
-  final String? photoUrl;
-  final MemberStatus status;
-  final String subscriptionName;
-  final DateTime createdAt;
-
-  Member({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.phone,
-    this.photoUrl,
-    required this.status,
-    required this.subscriptionName,
-    required this.createdAt,
-  });
-
-  String get initials {
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    } else if (parts.isNotEmpty && parts[0].isNotEmpty) {
-      return parts[0][0].toUpperCase();
-    }
-    return 'M';
-  }
-
-  factory Member.fromMap(Map<String, dynamic> map, String docId) {
-    return Member(
-      id: docId,
-      name: map['name'] ?? '',
-      email: map['email'] ?? '',
-      phone: map['phone'] ?? '',
-      photoUrl: map['photoUrl'],
-      status: _parseStatus(map['status']),
-      subscriptionName: map['subscriptionName'] ?? 'Sans abonnement',
-      createdAt: map['createdAt'] != null
-          ? DateTime.parse(map['createdAt'])
-          : DateTime.now(),
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'email': email,
-      'phone': phone,
-      'photoUrl': photoUrl,
-      'status': status.name,
-      'subscriptionName': subscriptionName,
-      'createdAt': createdAt.toIso8601String(),
-    };
-  }
-
-  Member copyWith({
-    String? id,
-    String? name,
-    String? email,
-    String? phone,
-    String? photoUrl,
-    MemberStatus? status,
-    String? subscriptionName,
-    DateTime? createdAt,
-  }) {
-    return Member(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      email: email ?? this.email,
-      phone: phone ?? this.phone,
-      photoUrl: photoUrl ?? this.photoUrl,
-      status: status ?? this.status,
-      subscriptionName: subscriptionName ?? this.subscriptionName,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
-
-  static MemberStatus _parseStatus(String? statusStr) {
-    switch (statusStr) {
-      case 'active':
-        return MemberStatus.active;
-      case 'expiring':
-        return MemberStatus.expiring;
-      case 'toVerify':
-        return MemberStatus.toVerify;
-      case 'inactive':
-      default:
-        return MemberStatus.inactive;
-    }
-  }
-}
->>>>>>> admin/master

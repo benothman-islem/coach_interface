@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:salledesport/data/remote/dtos.dart';
+import 'package:salledesport/core/data/remote/dtos.dart';
 
 void main() {
   test('maps coach profile fields from Firestore data', () {

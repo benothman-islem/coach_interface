@@ -7,14 +7,14 @@ void main() {
   test(
     'member mapping uses available contact data and stable presentation data',
     () {
-      final first = Member.fromMap('member-1', {
+      final first = Member.fromMap({
         'name': 'Yasmine Ali',
         'phone': '0612345678',
-      });
-      final second = Member.fromMap('member-1', {
+      }, 'member-1');
+      final second = Member.fromMap({
         'name': 'Yasmine Ali',
         'phone': '0612345678',
-      });
+      }, 'member-1');
 
       expect(first.name, 'Yasmine Ali');
       expect(first.initials, 'YA');
