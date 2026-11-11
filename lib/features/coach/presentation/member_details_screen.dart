@@ -6,8 +6,8 @@ import 'package:salledesport/models/session.dart';
 import 'package:salledesport/models/ui_state.dart';
 import 'package:salledesport/core/theme/app_theme.dart';
 
-class AdherentDetailsScreen extends StatelessWidget {
-  const AdherentDetailsScreen({
+class MemberDetailsScreen extends StatelessWidget {
+  const MemberDetailsScreen({
     required this.member,
     required this.sessions,
     super.key,

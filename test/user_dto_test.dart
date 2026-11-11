@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:salledesport/core/data/remote/dtos.dart';
 
 void main() {
-  test('maps coach profile fields from Firestore data', () {
+  test('maps coach profile fields from profile data', () {
     final profile = UserDto.fromMap({
       'name': 'Coach de test',
       'email': 'coach@example.com',

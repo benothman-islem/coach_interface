@@ -7,7 +7,7 @@ import 'package:salledesport/core/widgets/app_widgets.dart';
 import 'package:salledesport/core/widgets/ui_state_view.dart';
 import 'package:salledesport/features/coach/viewmodels/screen_viewmodels.dart';
 
-import 'package:salledesport/features/adherent/presentation/adherent_details_screen.dart';
+import 'member_details_screen.dart';
 
 class MembersScreen extends StatelessWidget {
   const MembersScreen({
@@ -72,7 +72,7 @@ class MembersScreen extends StatelessWidget {
                             member: members[index],
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute<void>(
-                                builder: (_) => AdherentDetailsScreen(
+                                builder: (_) => MemberDetailsScreen(
                                   member: members[index],
                                   sessions: viewModel.watchMemberSessions(
                                     members[index].id,

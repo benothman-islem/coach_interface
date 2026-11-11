@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:salledesport/models/member.dart';
 import 'package:salledesport/models/session.dart';
 import 'package:salledesport/models/ui_state.dart';
-import 'package:salledesport/models/app_user.dart';
-import 'package:salledesport/models/user_profile.dart';
 import 'package:salledesport/core/data/remote/dtos.dart';
 
 import 'repositories.dart';
@@ -19,88 +17,10 @@ class FakeRepositories extends AppRepositories {
     _FakeProfileRepository profiles,
     _FakeSessionsRepository sessions,
   ) : super(
-        auth: _FakeAuthRepository(profiles),
         profiles: profiles,
         sessions: sessions,
         members: _FakeMembersRepository(sessions),
-        coaches: _FakeCoachesRepository(),
       );
-}
-
-class _FakeCoachesRepository implements CoachesRepository {
-  static const _coaches = [
-    UserDto(
-      name: 'Coach de test',
-      email: 'coach@example.com',
-      phone: '0600000000',
-      role: 'coach',
-      specialties: ['HIIT', 'Mobilité'],
-      experienceYears: 6,
-      rating: 4.8,
-      isActive: true,
-    ),
-    UserDto(
-      name: 'Nour Ben Ali',
-      email: 'nour@example.com',
-      phone: '0611223344',
-      role: 'coach',
-      specialties: ['Yoga', 'Renforcement'],
-      experienceYears: 4,
-      rating: 4.6,
-      isActive: true,
-    ),
-  ];
-
-  @override
-  Future<List<CoachProfile>> getAllCoaches() async => [
-    for (var index = 0; index < _coaches.length; index++)
-      _coaches[index].toCoachProfile(id: 'preview-coach-$index'),
-  ];
-}
-
-class _FakeAuthRepository implements AuthRepository {
-  _FakeAuthRepository(this._profiles);
-
-  final _FakeProfileRepository _profiles;
-  AppUser? _user;
-
-  @override
-  Future<AppUser?> restoreSession() async => _user;
-
-  @override
-  Future<void> sendPasswordResetEmail(String email) async {}
-
-  @override
-  Future<AppUser> signIn(String email, String password) async {
-    _user = AppUser(uid: 'preview-coach', email: email, role: UserRole.coach);
-    return _user!;
-  }
-
-  @override
-  Future<AppUser> registerCoach({
-    required String name,
-    required String email,
-    required String phone,
-    required String password,
-  }) async {
-    _profiles.setProfile(
-      UserDto(
-        name: name,
-        email: email,
-        phone: phone,
-        role: 'coach',
-        specialties: const [],
-        experienceYears: 0,
-        isActive: true,
-      ),
-    );
-    return signIn(email, password);
-  }
-
-  @override
-  Future<void> signOut() async {
-    _user = null;
-  }
 }
 
 class _FakeProfileRepository implements ProfileRepository {
@@ -113,11 +33,6 @@ class _FakeProfileRepository implements ProfileRepository {
   );
 
   final _controller = StreamController<UiState<UserDto>>.broadcast();
-
-  void setProfile(UserDto profile) {
-    _profile = profile;
-    _controller.add(UiSuccess(profile));
-  }
 
   @override
   Stream<UiState<UserDto>> watchProfile(String uid) => Stream.multi((output) {
@@ -132,20 +47,19 @@ class _FakeProfileRepository implements ProfileRepository {
     required String name,
     required String phone,
   }) async {
-    setProfile(
-      UserDto(
-        name: name,
-        email: _profile.email,
-        phone: phone,
-        role: _profile.role,
-        createdAt: _profile.createdAt,
-        specialties: _profile.specialties,
-        coachSince: _profile.coachSince,
-        rating: _profile.rating,
-        experienceYears: _profile.experienceYears,
-        isActive: _profile.isActive,
-      ),
+    _profile = UserDto(
+      name: name,
+      email: _profile.email,
+      phone: phone,
+      role: _profile.role,
+      createdAt: _profile.createdAt,
+      specialties: _profile.specialties,
+      coachSince: _profile.coachSince,
+      rating: _profile.rating,
+      experienceYears: _profile.experienceYears,
+      isActive: _profile.isActive,
     );
+    _controller.add(UiSuccess(_profile));
   }
 }
 
@@ -265,13 +179,6 @@ class _FakeSessionsRepository implements SessionsRepository {
     _sessions.removeWhere((session) => session.documentId == id);
     _emit();
   }
-
-  @override
-  Future<void> toggleEnrollment(
-    String id,
-    String memberUid,
-    bool enrolled,
-  ) async {}
 }
 
 class _FakeMembersRepository implements MembersRepository {

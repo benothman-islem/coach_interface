@@ -1,13 +1,7 @@
-import 'dart:async';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:salledesport/core/theme/app_colors.dart';
-import 'package:salledesport/core/data/repositories/firebase_repositories.dart';
 import 'package:salledesport/core/data/repositories/repositories.dart';
-import 'package:salledesport/models/app_user.dart';
 import 'package:salledesport/features/coach/viewmodels/screen_viewmodels.dart';
 
 import 'home_screen.dart';
@@ -16,16 +10,9 @@ import 'profile_screen.dart';
 import 'sessions_screen.dart';
 
 class CoachHomeScreen extends StatefulWidget {
-  const CoachHomeScreen({
-    required this.repositories,
-    required this.user,
-    required this.onLogout,
-    super.key,
-  });
+  const CoachHomeScreen({required this.repositories, super.key});
 
   final AppRepositories repositories;
-  final AppUser user;
-  final Future<void> Function() onLogout;
 
   @override
   State<CoachHomeScreen> createState() => _CoachHomeScreenState();
@@ -36,25 +23,21 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
   late final SessionsViewModel _sessionsViewModel;
   late final MembersViewModel _membersViewModel;
   late final ProfileViewModel _profileViewModel;
-  late final FirebaseDebugSessionSeeder? _debugSeeder;
   int _selectedIndex = 0;
+  static const _coachId = 'mock-coach';
 
   @override
   void initState() {
     super.initState();
     final repositories = widget.repositories;
-    final uid = widget.user.uid;
     _homeViewModel = HomeViewModel(
       profiles: repositories.profiles,
       sessions: repositories.sessions,
-      uid: uid,
+      uid: _coachId,
     );
-    _sessionsViewModel = SessionsViewModel(repositories.sessions, uid);
-    _membersViewModel = MembersViewModel(repositories.members, uid);
-    _profileViewModel = ProfileViewModel(repositories.profiles, uid);
-    _debugSeeder = kDebugMode && repositories is FirebaseRepositories
-        ? FirebaseDebugSessionSeeder(FirebaseFirestore.instance)
-        : null;
+    _sessionsViewModel = SessionsViewModel(repositories.sessions, _coachId);
+    _membersViewModel = MembersViewModel(repositories.members, _coachId);
+    _profileViewModel = ProfileViewModel(repositories.profiles, _coachId);
   }
 
   @override
@@ -90,9 +73,6 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
             SessionsScreen(
               viewModel: _sessionsViewModel,
               onItemSelected: _selectTab,
-              onSeedSamples: _debugSeeder == null
-                  ? null
-                  : () => _debugSeeder.seedSessionsOnce(widget.user.uid),
             ),
             MembersScreen(
               viewModel: _membersViewModel,
@@ -101,7 +81,6 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
             ProfileScreen(
               viewModel: _profileViewModel,
               onItemSelected: _selectTab,
-              onLogout: widget.onLogout,
             ),
           ],
         ),

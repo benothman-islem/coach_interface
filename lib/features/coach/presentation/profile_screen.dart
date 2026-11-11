@@ -12,13 +12,11 @@ class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
     required this.viewModel,
     required this.onItemSelected,
-    required this.onLogout,
     super.key,
   });
 
   final ProfileViewModel viewModel;
   final ValueChanged<int> onItemSelected;
-  final Future<void> Function() onLogout;
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
@@ -73,13 +71,6 @@ class ProfileScreen extends StatelessWidget {
                   label: 'Paramètres',
                   icon: Icons.settings_outlined,
                 ),
-                const Divider(height: 1, color: AppColors.border),
-                _MenuRow(
-                  label: 'Se déconnecter',
-                  icon: Icons.logout,
-                  destructive: true,
-                  onTap: onLogout,
-                ),
               ],
             ),
           ),
@@ -88,47 +79,10 @@ class ProfileScreen extends StatelessWidget {
       );
 
   Future<void> _editProfile(BuildContext context, CoachProfile profile) async {
-    final name = TextEditingController(text: profile.name);
-    final phone = TextEditingController(text: profile.phone);
     try {
       final result = await showDialog<(String, String)>(
         context: context,
-        builder: (context) => AlertDialog(
-          backgroundColor: AppColors.sheet,
-          title: const Text('Informations personnelles'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              InputDecorator(
-                decoration: const InputDecoration(labelText: 'Adresse e-mail'),
-                child: Text(profile.email),
-              ),
-              InputDecorator(
-                decoration: const InputDecoration(labelText: 'Rôle'),
-                child: Text(profile.role),
-              ),
-              TextField(
-                controller: name,
-                decoration: const InputDecoration(labelText: 'Nom'),
-              ),
-              TextField(
-                controller: phone,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Téléphone'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, (name.text, phone.text)),
-              child: const Text('Enregistrer'),
-            ),
-          ],
-        ),
+        builder: (context) => _ProfileEditDialog(profile: profile),
       );
       if (result != null && context.mounted) {
         await viewModel.update(name: result.$1, phone: result.$2);
@@ -139,11 +93,71 @@ class ProfileScreen extends StatelessWidget {
           const SnackBar(content: Text('Impossible de modifier le profil.')),
         );
       }
-    } finally {
-      name.dispose();
-      phone.dispose();
     }
   }
+}
+
+class _ProfileEditDialog extends StatefulWidget {
+  const _ProfileEditDialog({required this.profile});
+
+  final CoachProfile profile;
+
+  @override
+  State<_ProfileEditDialog> createState() => _ProfileEditDialogState();
+}
+
+class _ProfileEditDialogState extends State<_ProfileEditDialog> {
+  late final TextEditingController _name = TextEditingController(
+    text: widget.profile.name,
+  );
+  late final TextEditingController _phone = TextEditingController(
+    text: widget.profile.phone,
+  );
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _phone.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    backgroundColor: AppColors.sheet,
+    title: const Text('Informations personnelles'),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        InputDecorator(
+          decoration: const InputDecoration(labelText: 'Adresse e-mail'),
+          child: Text(widget.profile.email),
+        ),
+        InputDecorator(
+          decoration: const InputDecoration(labelText: 'Rôle'),
+          child: Text(widget.profile.role),
+        ),
+        TextField(
+          controller: _name,
+          decoration: const InputDecoration(labelText: 'Nom'),
+        ),
+        TextField(
+          controller: _phone,
+          keyboardType: TextInputType.phone,
+          decoration: const InputDecoration(labelText: 'Téléphone'),
+        ),
+      ],
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Annuler'),
+      ),
+      TextButton(
+        onPressed: () => Navigator.pop(context, (_name.text, _phone.text)),
+        child: const Text('Enregistrer'),
+      ),
+    ],
+  );
 }
 
 class _ProfileHeader extends StatelessWidget {
@@ -373,21 +387,14 @@ class _ProfileStat extends StatelessWidget {
 }
 
 class _MenuRow extends StatelessWidget {
-  const _MenuRow({
-    required this.label,
-    required this.icon,
-    this.onTap,
-    this.destructive = false,
-  });
+  const _MenuRow({required this.label, required this.icon, this.onTap});
 
   final String label;
   final IconData icon;
   final VoidCallback? onTap;
-  final bool destructive;
 
   @override
   Widget build(BuildContext context) {
-    final itemColor = destructive ? AppColors.destructive : AppColors.lime;
     return InkWell(
       onTap: onTap ?? () {},
       child: Padding(
@@ -398,12 +405,10 @@ class _MenuRow extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: destructive
-                    ? AppColors.destructive.withValues(alpha: 0.10)
-                    : AppColors.selectedDay,
+                color: AppColors.selectedDay,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(icon, size: 22, color: itemColor),
+              child: Icon(icon, size: 22, color: AppColors.lime),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -412,15 +417,11 @@ class _MenuRow extends StatelessWidget {
                 style: AppText.trailingLabel.copyWith(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: destructive ? AppColors.destructive : AppColors.text,
+                  color: AppColors.text,
                 ),
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: destructive ? AppColors.destructive : AppColors.muted,
-            ),
+            const Icon(Icons.chevron_right, size: 20, color: AppColors.muted),
           ],
         ),
       ),

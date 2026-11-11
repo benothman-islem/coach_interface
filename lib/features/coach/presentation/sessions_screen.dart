@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:salledesport/core/theme/app_colors.dart';
@@ -14,13 +13,11 @@ class SessionsScreen extends StatefulWidget {
   const SessionsScreen({
     required this.viewModel,
     required this.onItemSelected,
-    this.onSeedSamples,
     super.key,
   });
 
   final SessionsViewModel viewModel;
   final ValueChanged<int> onItemSelected;
-  final Future<void> Function()? onSeedSamples;
 
   @override
   State<SessionsScreen> createState() => _SessionsScreenState();
@@ -146,12 +143,6 @@ class _SessionsScreenState extends State<SessionsScreen> {
     }
   }
 
-  Future<void> _seedSamples() async {
-    final seed = widget.onSeedSamples;
-    if (!kDebugMode || seed == null) return;
-    await _runMutation(seed);
-  }
-
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: widget.viewModel,
@@ -259,16 +250,6 @@ class _SessionsScreenState extends State<SessionsScreen> {
           ),
         ],
       ),
-      if (kDebugMode && widget.onSeedSamples != null)
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: _mutationInProgress ? null : _seedSamples,
-            icon: const Icon(Icons.science_outlined, size: 16),
-            label: const Text('Exemples (debug)'),
-            style: TextButton.styleFrom(foregroundColor: AppColors.muted),
-          ),
-        ),
       const SizedBox(height: 16),
       if (sessions.isEmpty)
         const Padding(

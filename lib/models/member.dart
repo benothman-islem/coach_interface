@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 enum MemberStatus { active, expiring, toVerify, inactive }
@@ -68,17 +67,6 @@ class Member {
     );
   }
 
-  factory Member.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> snapshot, {
-    int sessionsCount = 0,
-  }) {
-    final data = snapshot.data();
-    if (data == null) {
-      throw StateError('Adherent document ${snapshot.id} has no data.');
-    }
-    return Member.fromMap(data, snapshot.id, sessionsCount: sessionsCount);
-  }
-
   Map<String, dynamic> toMap() => {
     'name': name,
     'email': email,
@@ -127,7 +115,6 @@ class Member {
   };
 
   static DateTime? _parseDate(Object? value) => switch (value) {
-    Timestamp timestamp => timestamp.toDate(),
     DateTime date => date,
     String date => DateTime.tryParse(date),
     _ => null,

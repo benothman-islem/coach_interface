@@ -32,14 +32,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const GymAdherentApp(useFakeRepositories: true));
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byType(TextFormField).at(0),
-      'coach@example.com',
-    );
-    await tester.enterText(find.byType(TextFormField).at(1), 'password123');
-    await tester.tap(find.text('Se connecter'));
+    await tester.pumpWidget(const GymCoachApp());
     await tester.pumpAndSettle();
     await tester.tap(find.text('Adhérents'));
     await tester.pumpAndSettle();

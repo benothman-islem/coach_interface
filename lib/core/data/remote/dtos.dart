@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:salledesport/models/member.dart';
 import 'package:salledesport/models/session.dart';
@@ -60,8 +59,8 @@ class UserDto {
   }
 
   static DateTime? _date(Object? value) => switch (value) {
-    Timestamp timestamp => timestamp.toDate(),
     DateTime date => date,
+    String date => DateTime.tryParse(date),
     _ => null,
   };
 
@@ -130,8 +129,8 @@ class SessionDto {
   }
 
   static DateTime? _date(Object? value) => switch (value) {
-    Timestamp timestamp => timestamp.toDate(),
     DateTime date => date,
+    String date => DateTime.tryParse(date),
     _ => null,
   };
 
